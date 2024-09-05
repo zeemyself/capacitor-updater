@@ -68,6 +68,9 @@ public class CapacitorUpdaterNative {
     
     public func get() {
         let capacitorUpdater = CapacitorUpdater()
+        capacitorUpdater.versionBuild = Bundle.main.versionName ?? ""
+        capacitorUpdater.appId = Bundle.main.infoDictionary?["CFBundleIdentifier"] as? String ?? ""
+        
         let latestInfo = capacitorUpdater.getLatest(url: URL(string: updateUrl)!)
         let latestUrl = latestInfo.url
         let latestVersion = latestInfo.version
