@@ -14,16 +14,9 @@ public class CapacitorUpdaterNative {
     public static let shared :CapacitorUpdaterNative = .init()
     public static var isRunning = false
     public var capacitorUpdater = CapacitorUpdater()
-//    let capBundle = Bundle.init(identifier: "me.livingmobile.foodstoryowner.BetterCapacitor")
-//    let capConfigUrl: URL? = capBundle?.url(
-//        forResource: "capacitor.config",
-//        withExtension: "json",
-//        subdirectory: "build"
-//    )
-    private lazy var updateUrl = "http://localhost:8080/updates"
+    private lazy var updateUrl = isProduction() ? "http://localhost:8080/updates" : "http://localhost:8080/updates"
     private var currentVersionNative: Version = "0.0.0"
     public let TAG: String = "✨  Capacitor-updater-native:"
-    public let CAP_SERVER_PATH: String = "serverBasePath"
     public var versionBuild: String = Bundle.main.versionName ?? ""
     public var appId: String = Bundle.main.infoDictionary?["CFBundleIdentifier"] as? String ?? ""
     private let versionCode: String = Bundle.main.versionCode ?? ""
@@ -33,8 +26,6 @@ public class CapacitorUpdaterNative {
     private var backgroundWork: DispatchWorkItem?
     private var taskRunning = false
     private var backgroundTaskID: UIBackgroundTaskIdentifier = UIBackgroundTaskIdentifier.invalid
-    
-    private let capacitorUpdaterPlugin = CustomCapacitorUpdaterPlugin()
     
     public init() {}
     
@@ -250,7 +241,7 @@ public class CapacitorUpdaterNative {
     
     
     public func get() {
-        self.capacitorUpdaterPlugin.load()
+//        self.capacitorUpdaterPlugin.load()
         
         return
         
@@ -290,63 +281,16 @@ public class CapacitorUpdaterNative {
         print("\(self.TAG) Setting bundle result: \(success)")
     
     }
-}
-
-class CustomCAPBridgeViewController: CAPBridgeViewController {
-    let Constant = Bundle.init(identifier: "me.livingmobile.foodstoryowner.BetterCapacitor")!
-    override func instanceDescriptor() -> InstanceDescriptor {
-        guard let resourceURL = Constant.url(forResource: "build", withExtension: nil) else {
-//            LoggerLog(type: .error, "Resource not found")
-            return InstanceDescriptor()
+    
+    private func isProduction() -> Bool {
+        let bundle = Bundle.main
+        
+        guard let appName = bundle.object(forInfoDictionaryKey: "IS_APP_NAME") as? String else {
+            print("\(self.TAG) isProduction() guard true")
+            return true
         }
-        guard let configURL = Constant.url(
-            forResource: "capacitor.config",
-            withExtension: "json",
-            subdirectory: "build"
-        ) else {
-//            LoggerLog(type: .error, "config not found")
-            return InstanceDescriptor()
-        }
-        guard let cordovaConfig = Constant.url(
-            forResource: "config",
-            withExtension: "xml",
-            subdirectory: "build"
-        ) else {
-//            LoggerLog(type: .error, "Cordova not found")
-            return InstanceDescriptor()
-        }
-        let descriptor = InstanceDescriptor(
-            at: resourceURL,
-            configuration: configURL,
-            cordovaConfiguration: cordovaConfig
-        )
+        print("\(self.TAG) isProduction() appName = \(appName)")
 
-        guard !isNewBinary, !descriptor.cordovaDeployDisabled else { return descriptor }
-
-        guard let persistedPath = UserDefaults.standard.string(forKey: "serverBasePath"),
-              persistedPath != "" else { return descriptor }
-
-        guard let libPath = NSSearchPathForDirectoriesInDomains(.libraryDirectory, .userDomainMask, true).first
-        else { return descriptor }
-
-        descriptor.appLocation = URL(fileURLWithPath: libPath, isDirectory: true)
-            .appendingPathComponent("NoCloud")
-            .appendingPathComponent("ionic_built_snapshots")
-            .appendingPathComponent(URL(fileURLWithPath: persistedPath, isDirectory: true).lastPathComponent)
-        return descriptor
-    }
-}
-
-
-class CustomCapacitorUpdaterPlugin: CapacitorUpdaterPlugin {
-    override func getConfig() -> PluginConfig {
-        let vc = CustomCAPBridgeViewController()
-        vc.loadView()
-//        vc.bridge?.config = 
-        let config = (vc.bridge?.config.getPluginConfig("CapacitorUpdater"))!
-        print("✨CONFIG: \(config.getConfigJSON())")
-//        vc.
-        return config
-//        return PluginConfig(config: .init())
+        return appName == "Owner"
     }
 }
