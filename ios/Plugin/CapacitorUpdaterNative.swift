@@ -20,7 +20,7 @@ public class CapacitorUpdaterNative {
     public var versionBuild: String = Bundle.main.versionName ?? ""
     public var appId: String = Bundle.main.infoDictionary?["CFBundleIdentifier"] as? String ?? ""
     private let versionCode: String = Bundle.main.versionCode ?? ""
-    private let periodCheckDelay = 60
+    private let periodCheckDelay = 600 // 600 (10 minutes)
     private let autoUpdate = true
     private var directUpdate = true
     private var backgroundWork: DispatchWorkItem?
@@ -50,24 +50,8 @@ public class CapacitorUpdaterNative {
         print("\(self.TAG) Current bundle: \(self.capacitorUpdater.getCurrentBundle().toJSON())")
         
         capacitorUpdater.autoReset()
-        self.appMovedToForeground()
         self.cleanupObsoleteVersions()
         self.checkForUpdateAfterDelay()
-    }
-    
-    private func appMovedToForeground() {
-        let current: BundleInfo = self.capacitorUpdater.getCurrentBundle()
-        if backgroundWork != nil && taskRunning {
-            backgroundWork!.cancel()
-            print("\(TAG) Background Timer Task canceled, Activity resumed before timer completes")
-        }
-        if self.autoUpdate {
-            self.backgroundDownload()
-        } else {
-            print("\(TAG) Auto update is disabled")
-//            self.sendReadyToJs(current: current, msg: "disabled")
-        }
-//        self.checkAppReady()
     }
     
     
@@ -108,27 +92,37 @@ public class CapacitorUpdaterNative {
         return true
     }
     
-    private func checkForUpdateAfterDelay() {
-//        if periodCheckDelay == 0 || !self._isAutoUpdateEnabled() {
-//            return
-//        }
-        print("\(self.TAG) checkForUpdateAfterDelay()")
+    private func checkForUpdate() {
+        print("\(TAG) checkForUpdate()")
         guard let url = URL(string: self.updateUrl) else {
             print("\(self.TAG) Error no url or wrong format")
             return
         }
+
+        DispatchQueue.global(qos: .background).async {
+            let res = self.capacitorUpdater.getLatest(url: url)
+            let current = self.capacitorUpdater.getCurrentBundle()
+            
+            if let error = res.error {
+                print("\(self.TAG) Error found " + error)
+                return
+            }
+            
+            if res.version != current.getVersionName() {
+                print("\(self.TAG) New version found: \(res.version) from current \(current.getVersionName())")
+                self.backgroundDownload()
+            }
+            print("\(self.TAG) Version: \(current.getVersionName()) Result: \(res.version)")
+        }
+    }
+    
+    private func checkForUpdateAfterDelay() {
+        print("\(self.TAG) checkForUpdateAfterDelay()")
+        checkForUpdate() // Run update immediately without delay
         let timer = Timer.scheduledTimer(withTimeInterval: TimeInterval(periodCheckDelay), repeats: true) { _ in
             print("\(self.TAG) schedule timer with delay: \(self.periodCheckDelay)")
-            DispatchQueue.global(qos: .background).async {
-                let res = self.capacitorUpdater.getLatest(url: url)
-                let current = self.capacitorUpdater.getCurrentBundle()
-
-                if res.version != current.getVersionName() {
-                    print("\(self.TAG) New version found: \(res.version) from current \(current.getVersionName())")
-                    self.backgroundDownload()
-                }
-                print("\(self.TAG) Version: \(current.getVersionName()) Result: \(res.version)")
-            }
+            
+            self.checkForUpdate()
         }
         print("\(self.TAG) run loop \(timer.description)")
         RunLoop.current.add(timer, forMode: .default)
@@ -137,7 +131,7 @@ public class CapacitorUpdaterNative {
     private func backgroundDownload() {
         print("\(self.TAG) backgroundDownload()")
         guard let url = URL(string: self.updateUrl) else {
-            print("\(self.capacitorUpdater.TAG) Error no url or wrong format")
+            print("\(self.TAG) Error no url or wrong format")
             return
         }
         DispatchQueue.global(qos: .background).async {
@@ -145,58 +139,55 @@ public class CapacitorUpdaterNative {
                 // End the task if time expires.
                 self.endBackGroundTask()
             }
-            print("\(self.capacitorUpdater.TAG) Check for update via \(self.updateUrl)")
+            print("\(self.TAG) Check for update via \(self.updateUrl)")
             let res = self.capacitorUpdater.getLatest(url: url)
             let current = self.capacitorUpdater.getCurrentBundle()
 
             if (res.message) != nil {
-                print("\(self.capacitorUpdater.TAG) API message: \(res.message ?? "")")
-//                if res.major == true {
-//                    self.notifyListeners("majorAvailable", data: ["version": res.version])
-//                }
+                print("\(self.TAG) API message: \(res.message ?? "")")
                 self.endBackGroundTaskWithNotif(msg: res.message ?? "", latestVersionName: res.version, current: current, error: false)
                 return
             }
             let sessionKey = res.sessionKey ?? ""
             guard let downloadUrl = URL(string: res.url) else {
-                print("\(self.capacitorUpdater.TAG) Error no url or wrong format")
+                print("\(self.TAG) Error no url or wrong format")
                 self.endBackGroundTaskWithNotif(msg: "Error no url or wrong format", latestVersionName: res.version, current: current)
                 return
             }
             let latestVersionName = res.version
             if latestVersionName != "" && current.getVersionName() != latestVersionName {
                 do {
-                    print("\(self.capacitorUpdater.TAG) New bundle: \(latestVersionName) found. Current is: \(current.getVersionName()).")
+                    print("\(self.TAG) New bundle: \(latestVersionName) found. Current is: \(current.getVersionName()).")
                     var nextImpl = self.capacitorUpdater.getBundleInfoByVersionName(version: latestVersionName)
                     if nextImpl == nil || ((nextImpl?.isDeleted()) != nil) {
                         if (nextImpl?.isDeleted()) != nil {
-                            print("\(self.capacitorUpdater.TAG) Latest bundle already exists and will be deleted, download will overwrite it.")
+                            print("\(self.TAG) Latest bundle already exists and will be deleted, download will overwrite it.")
                             let res = self.capacitorUpdater.delete(id: nextImpl!.getId(), removeInfo: true)
                             if res {
-                                print("\(self.capacitorUpdater.TAG) Delete version deleted: \(nextImpl!.toString())")
+                                print("\(self.TAG) Delete version deleted: \(nextImpl!.toString())")
                             } else {
-                                print("\(self.capacitorUpdater.TAG) Failed to delete failed bundle: \(nextImpl!.toString())")
+                                print("\(self.TAG) Failed to delete failed bundle: \(nextImpl!.toString())")
                             }
                         }
                         nextImpl = try self.capacitorUpdater.download(url: downloadUrl, version: latestVersionName, sessionKey: sessionKey)
                     }
                     guard let next = nextImpl else {
-                        print("\(self.capacitorUpdater.TAG) Error downloading file")
+                        print("\(self.TAG) Error downloading file")
                         self.endBackGroundTaskWithNotif(msg: "Error downloading file", latestVersionName: latestVersionName, current: current)
                         return
                     }
                     if next.isErrorStatus() {
-                        print("\(self.capacitorUpdater.TAG) Latest version is in error state. Aborting update.")
+                        print("\(self.TAG) Latest version is in error state. Aborting update.")
                         self.endBackGroundTaskWithNotif(msg: "Latest version is in error state. Aborting update.", latestVersionName: latestVersionName, current: current)
                         return
                     }
                     if res.checksum != "" && next.getChecksum() != res.checksum {
-                        print("\(self.capacitorUpdater.TAG) Error checksum", next.getChecksum(), res.checksum)
+                        print("\(self.TAG) Error checksum", next.getChecksum(), res.checksum)
                         self.capacitorUpdater.sendStats(action: "checksum_fail", versionName: next.getVersionName())
                         let id = next.getId()
                         let resDel = self.capacitorUpdater.delete(id: id)
                         if !resDel {
-                            print("\(self.capacitorUpdater.TAG) Delete failed, id \(id) doesn't exist")
+                            print("\(self.TAG) Delete failed, id \(id) doesn't exist")
                         }
                         self.endBackGroundTaskWithNotif(msg: "Error checksum", latestVersionName: latestVersionName, current: current)
                         return
@@ -207,19 +198,18 @@ public class CapacitorUpdaterNative {
                         self.directUpdate = false
                         self.endBackGroundTaskWithNotif(msg: "update installed", latestVersionName: latestVersionName, current: current, error: false)
                     } else {
-//                        self.notifyListeners("updateAvailable", data: ["bundle": next.toJSON()])
                         _ = self.capacitorUpdater.setNextBundle(next: next.getId())
                         self.endBackGroundTaskWithNotif(msg: "update downloaded, will install next background", latestVersionName: latestVersionName, current: current, error: false)
                     }
                     return
                 } catch {
-                    print("\(self.capacitorUpdater.TAG) Error downloading file", error.localizedDescription)
+                    print("\(self.TAG) Error downloading file", error.localizedDescription)
                     let current: BundleInfo = self.capacitorUpdater.getCurrentBundle()
                     self.endBackGroundTaskWithNotif(msg: "Error downloading file", latestVersionName: latestVersionName, current: current)
                     return
                 }
             } else {
-                print("\(self.capacitorUpdater.TAG) No need to update, \(current.getId()) is the latest bundle.")
+                print("\(self.TAG) No need to update, \(current.getId()) is the latest bundle.")
                 self.endBackGroundTaskWithNotif(msg: "No need to update, \(current.getId()) is the latest bundle.", latestVersionName: latestVersionName, current: current, error: false)
                 return
             }
@@ -237,49 +227,6 @@ public class CapacitorUpdaterNative {
     
     private func _reload() {
         // not reload
-    }
-    
-    
-    public func get() {
-//        self.capacitorUpdaterPlugin.load()
-        
-        return
-        
-        
-        let capacitorUpdater = CapacitorUpdater()
-        capacitorUpdater.versionBuild = Bundle.main.versionName ?? ""
-        capacitorUpdater.appId = Bundle.main.infoDictionary?["CFBundleIdentifier"] as? String ?? ""
-        
-        let latestInfo = capacitorUpdater.getLatest(url: URL(string: updateUrl)!)
-        let latestUrl = latestInfo.url
-        let latestVersion = latestInfo.version
-        print("\(self.TAG) Finish get latest information \(latestInfo.toDict())")
-        print("\(self.TAG) Finish get latest information url \(latestUrl) version \(latestVersion)")
-        
-        if latestUrl.isEmpty {
-            print("\(self.TAG) Already on latest version")
-            return
-        }
-        
-        //Download
-        var downloadedBundle: BundleInfo?
-        do {
-            downloadedBundle = try capacitorUpdater.download(url: URL(string: latestUrl)!, version: latestVersion, sessionKey: "")
-            print("\(self.TAG) Finish downloaded bundle Bundle: \(downloadedBundle)")
-            print("\(self.TAG) Finish downloaded bundle BundleJSON: \(downloadedBundle!.toJSON())")
-            print("\(self.TAG) Finish downloaded bundle BundleString: \(downloadedBundle!.toString())")
-        } catch {
-            print("\(self.TAG) Failed to download from: \(String(describing: latestUrl)) \(error.localizedDescription)")
-        }
-        
-        guard let downloadedBundle = downloadedBundle else {
-            print("\(self.TAG) Failed to parse bundle")
-            return
-        }
-        
-        let success = capacitorUpdater.set(bundle: downloadedBundle)
-        print("\(self.TAG) Setting bundle result: \(success)")
-    
     }
     
     private func isProduction() -> Bool {
