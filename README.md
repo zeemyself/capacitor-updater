@@ -1,31 +1,47 @@
 # Capacitor updater
-  <a href="https://capgo.app/"><img src='https://raw.githubusercontent.com/Cap-go/capgo/main/assets/capgo_banner.png' alt='Capgo - Instant updates for capacitor'/></a>
-[![Discord](https://badgen.net/badge/icon/discord?icon=discord&label)](https://discord.com/invite/VnYRvBfgA6)
-<a href="https://discord.com/invite/VnYRvBfgA6"><img src="https://img.shields.io/discord/912707985829163099?color=%237289DA&label=Discord" alt="Discord">
-[![npm](https://img.shields.io/npm/dm/@capgo/capacitor-updater)](https://www.npmjs.com/package/@capgo/capacitor-updater)
-[![GitHub latest commit](https://badgen.net/github/last-commit/Cap-go/capacitor-updater/main)](https://GitHub.com/Cap-go/capacitor-updater/commit/)
-[![https://good-labs.github.io/greater-good-affirmation/assets/images/badge.svg](https://good-labs.github.io/greater-good-affirmation/assets/images/badge.svg)](https://good-labs.github.io/greater-good-affirmation)
-[![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=Cap-go_capacitor-updater&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=Cap-go_capacitor-updater)
-[![Bugs](https://sonarcloud.io/api/project_badges/measure?project=Cap-go_capacitor-updater&metric=bugs)](https://sonarcloud.io/summary/new_code?id=Cap-go_capacitor-updater)
-[![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=Cap-go_capacitor-updater&metric=sqale_rating)](https://sonarcloud.io/summary/new_code?id=Cap-go_capacitor-updater)
-[![Code Smells](https://sonarcloud.io/api/project_badges/measure?project=Cap-go_capacitor-updater&metric=code_smells)](https://sonarcloud.io/summary/new_code?id=Cap-go_capacitor-updater)
-[![Vulnerabilities](https://sonarcloud.io/api/project_badges/measure?project=Cap-go_capacitor-updater&metric=vulnerabilities)](https://sonarcloud.io/summary/new_code?id=Cap-go_capacitor-updater)
-[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=Cap-go_capacitor-updater&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=Cap-go_capacitor-updater)
-[![Technical Debt](https://sonarcloud.io/api/project_badges/measure?project=Cap-go_capacitor-updater&metric=sqale_index)](https://sonarcloud.io/summary/new_code?id=Cap-go_capacitor-updater)
-[![Open Bounties](https://img.shields.io/endpoint?url=https%3A%2F%2Fconsole.algora.io%2Fapi%2Fshields%2FCapgo%2Fbounties%3Fstatus%3Dopen)](https://console.algora.io/org/Capgo/bounties?status=open)
-[![Rewarded Bounties](https://img.shields.io/endpoint?url=https%3A%2F%2Fconsole.algora.io%2Fapi%2Fshields%2FCapgo%2Fbounties%3Fstatus%3Dcompleted)](https://console.algora.io/org/Capgo/bounties?status=completed)
 
-<div align="center">
-  <h2><a href="https://capgo.app/?ref=plugin"> ➡️ Get Instant updates for your App with Capgo 🚀</a></h2>
-  <h2><a href="https://capgo.app/consulting/?ref=plugin"> Fix your annoying bug now, Hire a Capacitor expert 💪</a></h2>
-</div>
+~~Update Ionic Capacitor apps without App/Play Store review (Code-push / hot-code updates).~~
 
-Update Ionic Capacitor apps without App/Play Store review (Code-push / hot-code updates).
+~~You have 3 ways possible :~~
+- ~~Use [capgo.app](https://capgo.app) a full featured auto-update system in 5 min Setup, to manage version, update, revert and see stats.~~
+- ~~Use your own server update with auto-update system~~
+- ~~Use manual methods to zip, upload, download, from JS to do it when you want.~~
 
-You have 3 ways possible :
-- Use [capgo.app](https://capgo.app) a full featured auto-update system in 5 min Setup, to manage version, update, revert and see stats.
-- Use your own server update with auto-update system
-- Use manual methods to zip, upload, download, from JS to do it when you want.
+## Fork (difference from native)
+
+This fork is added native method to the plugin to allow the app to check for updates and download them without the need to use the JS methods.
+
+### Installation
+
+#### Android
+
+`api("com.lmwn.android:capacitor-updater-native:1.0.8")`
+
+or 
+
+`implementation("com.lmwn.android:capacitor-updater-native:1.0.8")`
+
+#### iOS
+TBD
+
+### Usage
+
+#### Android
+
+```kotlin
+import ee.forgr.capacitor_updater.CapacitorUpdaterNative
+
+CapacitorUpdaterNative().update(context) // Android context
+```
+
+
+#### iOS
+
+```swift
+import CapacitorUpdater
+
+CapacitorUpdater.get()
+```
 
 
 ## Community

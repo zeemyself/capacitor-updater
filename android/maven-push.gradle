@@ -1,0 +1,79 @@
+apply plugin: 'maven-publish'
+
+def getReleaseRepositoryUrl() {
+    return hasProperty('RELEASE_REPOSITORY_URL') ? RELEASE_REPOSITORY_URL
+            : "https://nexus.wndv.co/repository/wongnai-mvn-release"
+}
+
+def getSnapshotRepositoryUrl() {
+    return hasProperty('SNAPSHOT_REPOSITORY_URL') ? SNAPSHOT_REPOSITORY_URL
+            : "https://nexus.wndv.co/repository/wongnai-mvn-snapshot"
+}
+
+def getRepositoryUsername() {
+    return hasProperty('MAVEN_USER') ? MAVEN_USER : ""
+}
+
+def getRepositoryPassword() {
+    return hasProperty('MAVEN_PASSWORD') ? MAVEN_PASSWORD : ""
+}
+
+task sourceJar(type: Jar) {
+    from android.sourceSets.main.java.srcDirs
+    getArchiveClassifier().set('sources')
+}
+
+publishing {
+    repositories {
+        maven {
+            url getReleaseRepositoryUrl()
+            credentials {
+                username getRepositoryUsername()
+                password getRepositoryPassword()
+            }
+        }
+    }
+
+    publications {
+        release(MavenPublication) {
+            pom {
+                name = 'Capacitor Updater Native'
+                groupId = 'com.lmwn.android'
+                artifactId = 'capacitor-updater-native'
+                version = project.versionName
+                description = 'Capacitor Updater Native'
+                url = 'https://git.wndv.co/foodstory/capacitor-updater'
+                licenses {
+                    license {
+                        name = 'The Apache License, Version 2.0'
+                        url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                    }
+                }
+                developers {
+                    developer {
+                        id = 'pos-dev'
+                        name = 'POS Dev'
+                        email = 'swas@lmwn.com'
+                    }
+                }
+                scm {
+                    connection = 'https://git.wndv.co/foodstory/capacitor-updater.git'
+                    developerConnection = 'ssh://git@git.wndv.co:10022/foodstory/capacitor-updater.git'
+                    url = 'https://git.wndv.co/foodstory/capacitor-updater'
+                }
+                artifact(sourceJar)
+                artifact("build/outputs/aar/android-release.aar")
+
+                pom.withXml {
+                    def dependenciesNode = asNode().appendNode('dependencies')
+                    configurations.implementation.allDependencies.each {
+                        def dependencyNode = dependenciesNode.appendNode('dependency')
+                        dependencyNode.appendNode('groupId', it.group)
+                        dependencyNode.appendNode('artifactId', it.name)
+                        dependencyNode.appendNode('version', it.version)
+                    }
+                }
+            }
+        }
+    }
+}
