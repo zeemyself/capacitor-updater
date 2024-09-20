@@ -9,7 +9,7 @@ let package = Package(
     products: [
         .library(
             name: "CapgoCapacitorUpdater",
-            targets: ["CapgoCapacitorUpdater"]
+            targets: ["Plugin"]
         )
     ],
     dependencies: [
@@ -27,16 +27,7 @@ let package = Package(
                 "Alamofire",
                 "Version"
             ],
-            path: "ios/Plugin",
-            sources: ["."],
-            publicHeadersPath: ".",
-            cSettings: [
-                .headerSearchPath("include")
-            ],
-            swiftSettings: [
-                .define("SWIFT_PACKAGE"),
-                .unsafeFlags(["-swift-version", "5.1"])
-            ]
+            path: "ios/Plugin"
         )
     ]
 )
