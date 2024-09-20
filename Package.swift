@@ -22,8 +22,8 @@ let package = Package(
         .target(
             name: "CapgoCapacitorUpdater",
             dependencies: [
-                "Capacitor",
-                "SSZipArchive",
+                "capacitor-swift-pm",
+                "ZipArchive",
                 "Alamofire",
                 "Version"
             ],
