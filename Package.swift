@@ -14,7 +14,7 @@ let package = Package(
     ],
     dependencies: [
         .package(url: "https://github.com/ionic-team/capacitor-swift-pm.git", branch: "main"),
-        .package(url: "https://github.com/ZipArchive/ZipArchive.git", from: "2.0.0"),
+        .package(url: "https://github.com/ZipArchive/ZipArchive.git", exact: "2.4.3"),
         .package(url: "https://github.com/Alamofire/Alamofire.git", from: "5.0.0"),
         .package(url: "https://github.com/mrackwitz/Version.git", from: "0.0.0")
     ],
@@ -22,7 +22,7 @@ let package = Package(
         .target(
             name: "CapgoCapacitorUpdater",
             dependencies: [
-                "capacitor-swift-pm",
+                .product(name: "Capacitor", package: "capacitor-swift-pm"),
                 "ZipArchive",
                 "Alamofire",
                 "Version"
@@ -31,3 +31,5 @@ let package = Package(
         )
     ]
 )
+
+// Main app Capacitor still needs to be imported from SPM. Additionally, .h and .m files need to be removed and the code should be migrated to Swift as demonstrated in this example: https://capacitorjs.com/docs/plugins/ios
