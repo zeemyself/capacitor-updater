@@ -13,7 +13,34 @@ import Version
  * here: https://capacitorjs.com/docs/plugins/ios
  */
 @objc(CapacitorUpdaterPlugin)
-public class CapacitorUpdaterPlugin: CAPPlugin {
+public class CapacitorUpdaterPlugin: CAPPlugin, CAPBridgedPlugin {
+    public let identifier = "CapacitorUpdaterPlugin" 
+    public let jsName = "CapacitorUpdater" 
+    public let pluginMethods: [CAPPluginMethod] = [
+        CAPPluginMethod(name: "download", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "setUpdateUrl", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "setStatsUrl", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "setChannelUrl", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "set", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "list", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "delete", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "reset", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "current", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "reload", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "notifyAppReady", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "setDelay", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "setMultiDelay", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "cancelDelay", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "getLatest", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "setChannel", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "getChannel", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "setCustomId", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "getDeviceId", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "getPluginVersion", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "next", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "isAutoUpdateEnabled", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "getBuiltinVersion", returnType: CAPPluginReturnPromise),
+    ] 
     public var implementation = CapacitorUpdater()
     private let PLUGIN_VERSION: String = "6.0.51"
     static let updateUrlDefault = "https://api.capgo.app/updates"
