@@ -29,7 +29,7 @@ public class CapacitorUpdaterNative {
     
     public init() {}
     
-    public func load() {
+    public func update() {
         if CapacitorUpdaterNative.isRunning {
             print("\(self.TAG) Already running will ignore")
             // Already running ignore

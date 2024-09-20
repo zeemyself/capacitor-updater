@@ -22,7 +22,10 @@ or
 `implementation("com.lmwn.android:capacitor-updater-native:1.0.8")`
 
 #### iOS
-TBD
+
+`
+  pod 'CapgoCapacitorUpdater', :git => 'https://github.com/zeemyself/capacitor-updater', :branch => 'native'
+`
 
 ### Usage
 
@@ -40,7 +43,7 @@ CapacitorUpdaterNative().update(context) // Android context
 ```swift
 import CapacitorUpdater
 
-CapacitorUpdater.get()
+CapacitorUpdaterNative.shared.update()
 ```
 
 
