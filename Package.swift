@@ -22,7 +22,7 @@ let package = Package(
         .target(
             name: "CapgoCapacitorUpdater",
             dependencies: [
-                "capacitor-swift-pm",
+                .product(name: "Capacitor", package: "capacitor-swift-pm"),
                 "ZipArchive",
                 "Alamofire",
                 "Version"
