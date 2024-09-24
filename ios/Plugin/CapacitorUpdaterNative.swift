@@ -14,13 +14,13 @@ public class CapacitorUpdaterNative {
     public static let shared :CapacitorUpdaterNative = .init()
     public static var isRunning = false
     public var capacitorUpdater = CapacitorUpdater()
-    private lazy var updateUrl = isProduction() ? "http://localhost:8080/updates" : "http://localhost:8080/updates"
+    private let updateUrl = Bundle.main.object(forInfoDictionaryKey: "CAPACITOR_UPDATER_URL") as? String ?? "https://wongnai.com/updates"
     private var currentVersionNative: Version = "0.0.0"
     public let TAG: String = "✨  Capacitor-updater-native:"
     public var versionBuild: String = Bundle.main.versionName ?? ""
     public var appId: String = Bundle.main.infoDictionary?["CFBundleIdentifier"] as? String ?? ""
     private let versionCode: String = Bundle.main.versionCode ?? ""
-    private let periodCheckDelay = 600 // 600 (10 minutes)
+    private let periodCheckDelay = 3600 // 60 minutes
     private let autoUpdate = true
     private var directUpdate = true
     private var backgroundWork: DispatchWorkItem?
@@ -227,17 +227,5 @@ public class CapacitorUpdaterNative {
     
     private func _reload() {
         // not reload
-    }
-    
-    private func isProduction() -> Bool {
-        let bundle = Bundle.main
-        
-        guard let appName = bundle.object(forInfoDictionaryKey: "IS_APP_NAME") as? String else {
-            print("\(self.TAG) isProduction() guard true")
-            return true
-        }
-        print("\(self.TAG) isProduction() appName = \(appName)")
-
-        return appName == "Owner"
     }
 }
