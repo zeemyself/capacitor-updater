@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.util.Log;
 
 import com.android.volley.toolbox.Volley;
@@ -13,6 +14,7 @@ import com.getcapacitor.plugin.WebView;
 import org.json.JSONException;
 
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.*;
@@ -26,10 +28,10 @@ public class CapacitorUpdaterNative {
 	private SharedPreferences prefs;
 	private SharedPreferences.Editor editor;
 	private final CapacitorUpdater updater = new CapacitorUpdater();
-	private String updateUrl = "http://localhost:8080/updates";
+	private final String updateUrl = getBuildConfigValue("CAPACITOR_UPDATER_URL");
 	private String packageName;
 	private Version currentVersionNative;
-	private final Integer periodCheckDelay = 60 * 1000;
+	private final Integer periodCheckDelay = 3600 * 1000; // 3600 seconds = 1 hour (Android needs to times 1000)
 	private volatile Thread backgroundDownloadTask;
 
 	private void initializeUpdater(Context context) throws
@@ -45,7 +47,6 @@ public class CapacitorUpdaterNative {
 				context.getPackageManager(),
 				context.getPackageName()
 		);
-		this.updateUrl = isProduction() ? "http://localhost:8080/updatestest" : "http://localhost:8080/updates";
 		updater.appId = InternalUtils.getPackageName(
 				context.getPackageManager(),
 				context.getPackageName()
@@ -138,6 +139,10 @@ public class CapacitorUpdaterNative {
 		if (this.periodCheckDelay == 0) {
 			return;
 		}
+		Log.i(
+				TAG,
+				"Checking for updates with url " + updateUrl
+		);
 		final Timer timer = new Timer();
 		timer.schedule(
 				new TimerTask() {
@@ -152,6 +157,7 @@ public class CapacitorUpdaterNative {
 													TAG,
 													Objects.requireNonNull(res.getString("error"))
 											);
+											Log.i(TAG, "Response error with url " + CapacitorUpdaterNative.this.updateUrl);
 										} else if (res.has("version")) {
 											String newVersion = res.getString("version");
 											String currentVersion = String.valueOf(
@@ -414,6 +420,18 @@ public class CapacitorUpdaterNative {
 		Thread thread = new Thread(task);
 		thread.start();
 		return thread;
+	}
+
+	private String getBuildConfigValue(String fieldName) {
+		String capacitorPackage = "com.wongnai.android.pos.capacitor";
+		String fallbackUrl = "https://pos-ota.foodstory.co/updates";
+		try {
+			Class<?> clazz = Class.forName( capacitorPackage+ ".BuildConfig");
+			Field field = clazz.getField(fieldName);
+			return field.get(null).toString();
+		} catch (ClassNotFoundException | NoSuchFieldException | IllegalAccessException | NullPointerException e) {
+			return fallbackUrl;
+		}
 	}
 
 }
