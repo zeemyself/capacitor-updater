@@ -135,47 +135,52 @@ public class CapacitorUpdaterNative {
 		this.editor.commit();
 	}
 
+	private void checkForUpdates() {
+		Log.i(
+				TAG,
+				"checkForUpdates() Checking for updates with url " + updateUrl
+		);
+		try {
+			updater.getLatest(
+					CapacitorUpdaterNative.this.updateUrl,
+					res -> {
+						if (res.has("error")) {
+							Log.e(
+									TAG,
+									Objects.requireNonNull(res.getString("error"))
+							);
+							Log.i(TAG, "Response error with url " + CapacitorUpdaterNative.this.updateUrl);
+						} else if (res.has("version")) {
+							String newVersion = res.getString("version");
+							String currentVersion = String.valueOf(
+									CapacitorUpdaterNative.this.updater.getCurrentBundle()
+							);
+							if (!Objects.equals(newVersion, currentVersion)) {
+								Log.i(
+										TAG,
+										"New version found: " + newVersion
+								);
+								CapacitorUpdaterNative.this.backgroundDownload();
+							}
+						}
+					}
+			);
+		} catch (final Exception e) {
+			Log.e(TAG, "Failed to check for update", e);
+		}
+	}
+
 	private void checkForUpdateAfterDelay() {
 		if (this.periodCheckDelay == 0) {
 			return;
 		}
-		Log.i(
-				TAG,
-				"Checking for updates with url " + updateUrl
-		);
+		checkForUpdates();
 		final Timer timer = new Timer();
 		timer.schedule(
 				new TimerTask() {
 					@Override
 					public void run() {
-						try {
-							updater.getLatest(
-									CapacitorUpdaterNative.this.updateUrl,
-									res -> {
-										if (res.has("error")) {
-											Log.e(
-													TAG,
-													Objects.requireNonNull(res.getString("error"))
-											);
-											Log.i(TAG, "Response error with url " + CapacitorUpdaterNative.this.updateUrl);
-										} else if (res.has("version")) {
-											String newVersion = res.getString("version");
-											String currentVersion = String.valueOf(
-													CapacitorUpdaterNative.this.updater.getCurrentBundle()
-											);
-											if (!Objects.equals(newVersion, currentVersion)) {
-												Log.i(
-														TAG,
-														"New version found: " + newVersion
-												);
-												CapacitorUpdaterNative.this.backgroundDownload();
-											}
-										}
-									}
-							);
-						} catch (final Exception e) {
-							Log.e(TAG, "Failed to check for update", e);
-						}
+						checkForUpdates();
 					}
 				},
 				this.periodCheckDelay,
