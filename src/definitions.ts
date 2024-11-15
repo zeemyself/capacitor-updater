@@ -83,6 +83,16 @@ declare module "@capacitor/cli" {
       updateUrl?: string;
 
       /**
+       * Configure the URL / endpoint for channel operations.
+       *
+       * Only available for Android and iOS.
+       *
+       * @default https://api.capgo.app/channel_self
+       * @example https://example.com/api/channel
+       */
+      channelUrl?: string;
+
+      /**
        * Configure the URL / endpoint to which update statistics are sent.
        *
        * Only available for Android and iOS. Set to "" to disable stats reporting.
@@ -99,6 +109,15 @@ declare module "@capacitor/cli" {
        * @default undefined
        */
       privateKey?: string;
+      /**
+       * Configure the public key for end to end live update encryption Version 2
+       *
+       * Only available for Android and iOS.
+       *
+       * @default undefined
+       * @since 6.2.0
+       */
+      publicKey?: string;
 
       /**
        * Configure the current version of the app. This will be used for the first update request.
@@ -170,7 +189,22 @@ declare module "@capacitor/cli" {
        * @since  4.17.48
        */
       localSupaAnon?: string;
-
+      /**
+       * Configure the CLI to use a local api for testing.
+       *
+       *
+       * @default undefined
+       * @since  6.3.3
+       */
+      localApi?: string;
+      /**
+       * Configure the CLI to use a local file api for testing.
+       *
+       *
+       * @default undefined
+       * @since  6.3.3
+       */
+      localApiFiles?: string;
       /**
        * Allow the plugin to modify the updateUrl, statsUrl and channelUrl dynamically from the JavaScript side.
        *
@@ -189,6 +223,13 @@ declare module "@capacitor/cli" {
        * @since  5.5.0
        */
       defaultChannel?: string;
+      /**
+       * Configure the app id for the app in the config.
+       *
+       * @default undefined
+       * @since  6.0.0
+       */
+      appId?: string;
     };
   }
 }
@@ -306,6 +347,11 @@ export interface CapacitorUpdaterPlugin {
   /**
    * Sets a {@link DelayCondition} array containing conditions that the Plugin will use to delay the update.
    * After all conditions are met, the update process will run start again as usual, so update will be installed after a backgrounding or killing the app.
+   * For the `date` kind, the value should be an iso8601 date string.
+   * For the `background` kind, the value should be a number in milliseconds.
+   * For the `nativeVersion` kind, the value should be the version number.
+   * For the `kill` kind, the value is not used.
+   * The function has unconsistent behavior the option kill do trigger the update after the first kill and not after the next background like other options. This will be fixed in a future major release.
    *
    * @example
    * // Delay the update after the user kills the app or after a background of 300000 ms (5 minutes)
@@ -613,6 +659,12 @@ export interface AppReadyEvent {
   status: string;
 }
 
+export interface ManifestEntry {
+  file_name: string | null;
+  file_hash: string | null;
+  download_url: string | null;
+}
+
 export interface LatestVersion {
   /**
    * Result of getLatest method
@@ -620,12 +672,20 @@ export interface LatestVersion {
    * @since 4.0.0
    */
   version: string;
+  /**
+   * @since 6
+   */
+  checksum?: string;
   major?: boolean;
   message?: string;
   sessionKey?: string;
   error?: string;
   old?: string;
   url?: string;
+  /**
+   * @since 6.1
+   */
+  manifest?: ManifestEntry[];
 }
 
 export interface BundleInfo {

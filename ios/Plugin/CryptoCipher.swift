@@ -54,7 +54,7 @@ public struct AES128Key {
 
             let status: CCCryptorStatus = CCCrypt(CCOperation(kCCDecrypt), CryptoCipherConstants.aesAlgorithm, CryptoCipherConstants.aesOptions, keyData, keyLength, ivData, encryptedData, encryptedDataLength, decryptedData, decryptedDataLength, &decryptedLength)
 
-            if UInt32(status) == UInt32(kCCSuccess) {
+            if Int32(status) == Int32(kCCSuccess) {
                 result.length = Int(decryptedLength)
                 return result as Data
             } else {
@@ -83,10 +83,6 @@ public struct RSAKeyPair {
         self.publicKey = publicKey
     }
 
-    public func extractPublicKey() -> RSAPublicKey {
-        RSAPublicKey(publicKey: publicKey)
-    }
-
     ///
     /// Takes the data and uses the private key to decrypt it.
     /// Returns the decrypted data.
@@ -103,21 +99,7 @@ public struct RSAKeyPair {
             return nil
         }
     }
-}
 
-///
-/// The RSA public key.
-///
-public struct RSAPublicKey {
-    private let publicKey: SecKey
-
-    #if DEBUG
-    public var __debug_publicKey: SecKey { self.publicKey }
-    #endif
-
-    fileprivate init(publicKey: SecKey) {
-        self.publicKey = publicKey
-    }
     ///
     /// Takes the data and uses the public key to encrypt it.
     /// Returns the encrypted data.
@@ -134,24 +116,7 @@ public struct RSAPublicKey {
             return nil
         }
     }
-    ///
-    /// Allows you to export the RSA public key to a format (so you can send over the net).
-    ///
-    public func export() -> Data? {
-        return publicKey.exportToData()
-    }
-    //
 
-    ///
-    /// Allows you to load an RSA public key (i.e. one downloaded from the net).
-    ///
-    public static func load(rsaPublicKeyData: Data) -> RSAPublicKey? {
-        if let publicKey: SecKey = .loadPublicFromData(rsaPublicKeyData) {
-            return RSAPublicKey(publicKey: publicKey)
-        } else {
-            return nil
-        }
-    }
 }
 ///
 /// The RSA public key.
@@ -233,7 +198,7 @@ fileprivate extension SecKey {
             kSecAttrKeyClass: kSecAttrKeyClassPublic,
             kSecAttrKeySizeInBits: CryptoCipherConstants.rsaKeySizeInBits
         ]
-        return SecKeyCreateWithData(data as CFData, keyDict as CFDictionary, nil)
+        return SecKeyCreateWithData(data as NSData, keyDict as CFDictionary, nil)
     }
     static func loadPrivateFromData(_ data: Data) -> SecKey? {
         let keyDict: [NSObject: NSObject] = [
