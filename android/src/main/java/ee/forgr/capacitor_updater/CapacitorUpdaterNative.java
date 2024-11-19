@@ -28,10 +28,10 @@ public class CapacitorUpdaterNative {
 	private SharedPreferences prefs;
 	private SharedPreferences.Editor editor;
 	private final CapacitorUpdater updater = new CapacitorUpdater();
-	private final String updateUrl = getBuildConfigValue("CAPACITOR_UPDATER_URL");
+	private String updateUrl;
 	private String packageName;
 	private Version currentVersionNative;
-	private final Integer periodCheckDelay = 3600 * 1000; // 3600 seconds = 1 hour (Android needs to times 1000)
+	private Integer periodCheckDelay; // 3600 seconds = 60 minutes (Android needs to times 1000)
 	private volatile Thread backgroundDownloadTask;
 
 	private void initializeUpdater(Context context) throws
@@ -47,6 +47,8 @@ public class CapacitorUpdaterNative {
 				context.getPackageManager(),
 				context.getPackageName()
 		);
+		this.updateUrl = getBuildConfigValue("CAPACITOR_UPDATER_URL", this.packageName, "https://wongnai.com/updates");
+		this.periodCheckDelay = Integer.parseInt(getBuildConfigValue("CAPACITOR_UPDATER_INTERVAL", this.packageName, "3600")) * 1000; // Android needs to times 1000
 		updater.appId = InternalUtils.getPackageName(
 				context.getPackageManager(),
 				context.getPackageName()
@@ -402,16 +404,6 @@ public class CapacitorUpdaterNative {
 		Log.i(TAG, "endBackGroundTaskWithNotif " + msg);
 	}
 
-	private boolean isProduction() {
-		Log.d("CapacitorUpdaterNative", "isProduction() " + this.packageName);
-		if (this.packageName == null) {
-			Log.d("CapacitorUpdaterNative", "isProduction() packageName null return false" );
-			return false;
-		}
-		Log.d("CapacitorUpdaterNative", "isProduction() return " + "com.wongnai.android.pos".equals(this.packageName));
-		return "com.wongnai.android.pos".equals(this.packageName);
-	}
-
 	private boolean isValidURL(String urlStr) {
 		try {
 			new URL(urlStr);
@@ -427,16 +419,13 @@ public class CapacitorUpdaterNative {
 		return thread;
 	}
 
-	private String getBuildConfigValue(String fieldName) {
-		String capacitorPackage = "com.wongnai.android.pos.capacitor";
-		String fallbackUrl = "https://pos-ota.foodstory.co/updates";
+	private String getBuildConfigValue(String fieldName, String packageName, String fallback) {
 		try {
-			Class<?> clazz = Class.forName( capacitorPackage+ ".BuildConfig");
+			Class<?> clazz = Class.forName( packageName + ".BuildConfig");
 			Field field = clazz.getField(fieldName);
 			return field.get(null).toString();
 		} catch (ClassNotFoundException | NoSuchFieldException | IllegalAccessException | NullPointerException e) {
-			return fallbackUrl;
+			return fallback;
 		}
 	}
-
 }

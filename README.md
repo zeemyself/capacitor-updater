@@ -7,19 +7,20 @@
 - ~~Use your own server update with auto-update system~~
 - ~~Use manual methods to zip, upload, download, from JS to do it when you want.~~
 
-## Fork (difference from native)
+## Native Mode
 
-This fork is added native method to the plugin to allow the app to check for updates and download them without the need to use the JS methods.
+This version adds native functionality to enable the app to check for updates and download them directly through native code, without requiring JavaScript method calls.
+
 
 ### Installation
 
 #### Android
 
-`api("com.lmwn.android:capacitor-updater-native:1.0.8")`
+`api("com.lmwn.android:capacitor-updater-native:1.+")`
 
 or 
 
-`implementation("com.lmwn.android:capacitor-updater-native:1.0.8")`
+`implementation("com.lmwn.android:capacitor-updater-native:1.+")`
 
 #### iOS
 

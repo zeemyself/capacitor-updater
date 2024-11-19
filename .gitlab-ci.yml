@@ -1,0 +1,16 @@
+image: gradle:8.1-jdk8
+
+stages:
+  - distribute
+
+variables:
+  GRADLE_USER_HOME: "${CI_PROJECT_DIR}/.gradle"
+
+upload:
+  stage: distribute
+  script:
+    - ./gradlew assembleRelease
+    - ./gradlew publishToMavenLocal
+    - ./gradlew publish
+  only:
+    - tags
