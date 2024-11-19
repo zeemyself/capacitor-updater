@@ -20,7 +20,7 @@ public class CapacitorUpdaterNative {
     public var versionBuild: String = Bundle.main.versionName ?? ""
     public var appId: String = Bundle.main.infoDictionary?["CFBundleIdentifier"] as? String ?? ""
     private let versionCode: String = Bundle.main.versionCode ?? ""
-    private let periodCheckDelay = 3600 // 60 minutes
+    private let periodCheckDelay = Bundle.main.object(forInfoDictionaryKey: "CAPACITOR_UPDATER_INTERVAL") as? Int ?? 3600 //3600 // 60 minutes
     private let autoUpdate = true
     private var directUpdate = true
     private var backgroundWork: DispatchWorkItem?
@@ -46,6 +46,9 @@ public class CapacitorUpdaterNative {
         
         self.capacitorUpdater.versionBuild = Bundle.main.versionName ?? ""
         self.capacitorUpdater.appId = Bundle.main.infoDictionary?["CFBundleIdentifier"] as? String ?? ""
+        self.capacitorUpdater.deviceID = (UserDefaults.standard.string(forKey: "appUUID") ?? UUID().uuidString).lowercased()
+        UserDefaults.standard.set( self.capacitorUpdater.deviceID, forKey: "appUUID")
+        UserDefaults.standard.synchronize()
         
         print("\(self.TAG) Current bundle: \(self.capacitorUpdater.getCurrentBundle().toJSON())")
         
@@ -56,7 +59,7 @@ public class CapacitorUpdaterNative {
     
     
     /**
-                Mostyle reset to builtin version when native version upgraded
+        Reset to builtin version when native version has been upgraded
      */
     private func cleanupObsoleteVersions() {
         var LatestVersionNative: Version = "0.0.0"
