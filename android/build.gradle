@@ -15,8 +15,8 @@ buildscript {
         classpath 'com.android.tools.build:gradle:8.5.2'
     }
     ext {
-        versionName = "1.1.1"
-        versionCode = 11
+        versionName = "1.2.0"
+        versionCode = 12
     }
 }
 
