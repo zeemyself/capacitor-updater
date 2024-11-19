@@ -9,6 +9,7 @@ variables:
 upload:
   stage: distribute
   script:
+    - cd android
     - ./gradlew assembleRelease
     - ./gradlew publishToMavenLocal
     - ./gradlew publish
