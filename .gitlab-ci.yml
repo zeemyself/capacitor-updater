@@ -1,4 +1,4 @@
-image: gradle:8.1-jdk8
+image: registry.wndv.co/docker-android-sdk:2.1
 
 stages:
   - distribute
